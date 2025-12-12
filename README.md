@@ -13,14 +13,19 @@
 ```bash
 docker-compose up -d --build
 ```
+
 2- Accéder à l'application via votre navigateur à l'adresse suivante : 
 ```
-http://localhost:8000
+http://localhost
 ```
+
 3- Pour arrêter les conteneurs, utilisez la commande suivante :
 ```bash
 docker-compose down
 ```
+
+**Note :** Composer est exécuté automatiquement dans le conteneur Docker lors du build. Vous n'avez pas besoin d'installer les dépendances Composer localement.
+
 ## Script SQL
 
 ```sql

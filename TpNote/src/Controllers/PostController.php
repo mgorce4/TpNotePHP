@@ -1,9 +1,12 @@
 <?php
 
-require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Models' . DIRECTORY_SEPARATOR . 'Post.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Models' . DIRECTORY_SEPARATOR . 'Comment.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Models' . DIRECTORY_SEPARATOR . 'Reaction.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Models' . DIRECTORY_SEPARATOR . 'Vote.php');
+namespace App\Controllers;
+
+use App\Models\Post;
+use App\Models\Comment;
+use App\Models\Reaction;
+use App\Models\Vote;
+use Exception;
 
 class PostController {
     private $postModel;

@@ -1,0 +1,19 @@
+{
+    "name": "tpnote/reseau-social",
+    "description": "Réseau Social d'Entreprise - TP Final",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\Controllers\\": "src/Controllers/",
+            "App\\Models\\": "src/Models/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Max"
+        }
+    ]
+}

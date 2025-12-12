@@ -8,7 +8,6 @@ services:
       - db
     volumes:
       - ./TpNote:/var/www/html/
-      - ./vendor:/var/www/vendor/
     ports:
       - 80:80
 

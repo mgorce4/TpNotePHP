@@ -5,10 +5,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Import des contrôleurs
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR . 'UserController.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR . 'PostController.php');
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR . 'CommentController.php');
+// Autoloader Composer
+require_once __DIR__ . '/vendor/autoload.php';
+
+use App\Controllers\UserController;
+use App\Controllers\PostController;
+use App\Controllers\CommentController;
 
 // Routage
 $action = isset($_GET['action']) ? $_GET['action'] : 'connexion';

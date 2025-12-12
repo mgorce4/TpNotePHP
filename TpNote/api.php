@@ -17,12 +17,16 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 });
 
 session_start();
-require_once __DIR__ . '/src/Models/Reaction.php';
-require_once __DIR__ . '/src/Models/Vote.php';
-require_once __DIR__ . '/src/Models/Notification.php';
-require_once __DIR__ . '/src/Models/Comment.php';
-require_once __DIR__ . '/src/Models/Post.php';
-require_once __DIR__ . '/src/Models/User.php';
+
+// Autoloader Composer
+require_once __DIR__ . '/vendor/autoload.php';
+
+use App\Models\Reaction;
+use App\Models\Vote;
+use App\Models\Notification;
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\User;
 
 header('Content-Type: application/json');
 

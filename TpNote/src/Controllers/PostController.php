@@ -89,15 +89,15 @@ class PostController {
             }
 
             // Ajouter les données de votes pour chaque commentaire (avec gestion d'erreur)
-            foreach ($commentaires as &$commentaire) {
+            foreach ($commentaires as $key => $commentaire) {
                 try {
                     $scoreData = $this->voteModel->calculerScore($commentaire['commentaire_id']);
-                    $commentaire['vote_score'] = $scoreData['score'];
-                    $commentaire['user_vote'] = isset($_SESSION['user_id']) ? 
+                    $commentaires[$key]['vote_score'] = $scoreData['score'];
+                    $commentaires[$key]['user_vote'] = isset($_SESSION['user_id']) ? 
                         $this->voteModel->obtenirVote($_SESSION['user_id'], $commentaire['commentaire_id']) : null;
                 } catch (Exception $e) {
-                    $commentaire['vote_score'] = 0;
-                    $commentaire['user_vote'] = null;
+                    $commentaires[$key]['vote_score'] = 0;
+                    $commentaires[$key]['user_vote'] = null;
                 }
             }
 

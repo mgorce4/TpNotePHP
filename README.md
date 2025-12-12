@@ -28,8 +28,8 @@ CREATE TABLE utilisateurs (
     utilisateur_id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    password VARCHAR(255) NOT NULL
 ) ;
 
 CREATE TABLE messages (
@@ -53,7 +53,7 @@ CREATE TABLE commentaires (
 
 CREATE TABLE reactions (
     reaction_id INT AUTO_INCREMENT PRIMARY KEY,
-    type VARCHAR(20) DEFAULT 'like',
+    type VARCHAR(50) DEFAULT 'like',
     utilisateur_id INT NOT NULL,
     message_id INT NOT NULL,
     date_reaction TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

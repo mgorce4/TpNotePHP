@@ -97,12 +97,20 @@ function ajouterCommentaireAjax(postId) {
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
                             <h6 class="mb-1">${data.commentaire.nom}</h6>
-                            <p class="mb-2 comment-content" data-comment-id="${data.commentaire.commentaire_id}">
+                            <div id="comment-content-${data.commentaire.commentaire_id}" 
+                                 class="mt-2 mb-2 comment-content" 
+                                 data-comment-id="${data.commentaire.commentaire_id}"
+                                 data-original-content="${data.commentaire.contenu}">
                                 ${data.commentaire.contenu}
-                            </p>
+                            </div>
                             <small class="text-muted">
                                 <i class="bi bi-clock"></i> À l'instant
                             </small>
+                            <button class="btn btn-sm btn-link text-muted edit-comment-btn" 
+                                    data-comment-id="${data.commentaire.commentaire_id}" 
+                                    onclick="activerEditionInline(${data.commentaire.commentaire_id})">
+                                <i class="bi bi-pencil"></i> Modifier
+                            </button>
                         </div>
                         <div class="vote-buttons ms-3">
                             <button class="btn btn-sm btn-outline-success upvote-btn" 
@@ -152,6 +160,267 @@ function ajouterCommentaireAjax(postId) {
         alert('Erreur lors de l\'ajout du commentaire');
     });
 }
+
+/**
+ * Activer l'édition inline d'un commentaire
+ */
+function activerEditionInline(commentaireId) {
+    const contentDiv = document.getElementById('comment-content-' + commentaireId);
+    if (!contentDiv) return;
+    
+    // Récupérer le contenu original
+    const originalContent = contentDiv.getAttribute('data-original-content') || contentDiv.textContent.trim();
+    
+    // Rendre éditable
+    contentDiv.setAttribute('contenteditable', 'true');
+    contentDiv.focus();
+    
+    // Placer le curseur à la fin
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(contentDiv);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    // Ajouter une classe pour le style
+    contentDiv.classList.add('editing');
+    contentDiv.style.border = '2px solid #007bff';
+    contentDiv.style.padding = '8px';
+    contentDiv.style.borderRadius = '4px';
+    contentDiv.style.backgroundColor = '#f8f9fa';
+    
+    // Désactiver le bouton de modification
+    const editBtn = contentDiv.parentElement.querySelector('.edit-comment-btn[data-comment-id="' + commentaireId + '"]');
+    if (editBtn) editBtn.style.display = 'none';
+    
+    // Gérer la perte de focus (blur)
+    const handleBlur = function() {
+        const newContent = contentDiv.textContent.trim();
+        
+        // Si le contenu n'a pas changé, annuler l'édition
+        if (newContent === originalContent) {
+            annulerEditionInline(commentaireId);
+            return;
+        }
+        
+        // Si le contenu est vide, annuler
+        if (!newContent) {
+            alert('Le commentaire ne peut pas être vide');
+            contentDiv.textContent = originalContent;
+            annulerEditionInline(commentaireId);
+            return;
+        }
+        
+        // Sauvegarder les modifications
+        sauvegarderCommentaire(commentaireId, newContent);
+        
+        // Retirer l'événement pour éviter les multiples appels
+        contentDiv.removeEventListener('blur', handleBlur);
+    };
+    
+    contentDiv.addEventListener('blur', handleBlur);
+    
+    // Gérer la touche Entrée (optionnel : sauvegarder)
+    contentDiv.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            contentDiv.textContent = originalContent;
+            annulerEditionInline(commentaireId);
+            contentDiv.removeEventListener('blur', handleBlur);
+        }
+    });
+}
+
+/**
+ * Annuler l'édition inline
+ */
+function annulerEditionInline(commentaireId) {
+    const contentDiv = document.getElementById('comment-content-' + commentaireId);
+    if (!contentDiv) return;
+    
+    contentDiv.setAttribute('contenteditable', 'false');
+    contentDiv.classList.remove('editing');
+    contentDiv.style.border = '';
+    contentDiv.style.padding = '';
+    contentDiv.style.borderRadius = '';
+    contentDiv.style.backgroundColor = '';
+    
+    // Réactiver le bouton de modification
+    const editBtn = contentDiv.parentElement.querySelector('.edit-comment-btn[data-comment-id="' + commentaireId + '"]');
+    if (editBtn) editBtn.style.display = '';
+}
+
+/**
+ * Sauvegarder les modifications d'un commentaire
+ */
+function sauvegarderCommentaire(commentaireId, contenu) {
+    fetch('api.php?action=modifierCommentaire', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'commentaire_id=' + commentaireId + '&contenu=' + encodeURIComponent(contenu)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const contentDiv = document.getElementById('comment-content-' + commentaireId);
+            
+            // Mettre à jour le contenu et l'attribut original
+            contentDiv.textContent = contenu;
+            contentDiv.setAttribute('data-original-content', contenu);
+            
+            // Désactiver l'édition
+            annulerEditionInline(commentaireId);
+            
+            // Afficher une notification
+            showNotificationBanner('Commentaire modifié avec succès', 'success');
+        } else {
+            alert(data.message || 'Erreur lors de la modification');
+            annulerEditionInline(commentaireId);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la sauvegarde');
+        annulerEditionInline(commentaireId);
+    });
+}
+
+/**
+ * Activer l'édition inline d'un message (titre + contenu)
+ */
+function activerEditionMessage(messageId) {
+    const titreDiv = document.getElementById('message-titre-' + messageId);
+    const contenuDiv = document.getElementById('message-contenu-' + messageId);
+    
+    if (!titreDiv || !contenuDiv) return;
+    
+    // Sauvegarder les contenus originaux
+    const originalTitre = titreDiv.textContent.trim();
+    const originalContenu = contenuDiv.textContent.trim();
+    
+    // Rendre éditables
+    titreDiv.setAttribute('contenteditable', 'true');
+    contenuDiv.setAttribute('contenteditable', 'true');
+    
+    // Ajouter des styles
+    titreDiv.style.border = '2px solid #007bff';
+    titreDiv.style.padding = '8px';
+    titreDiv.style.borderRadius = '4px';
+    titreDiv.style.backgroundColor = '#f8f9fa';
+    
+    contenuDiv.style.border = '2px solid #007bff';
+    contenuDiv.style.padding = '8px';
+    contenuDiv.style.borderRadius = '4px';
+    contenuDiv.style.backgroundColor = '#f8f9fa';
+    
+    titreDiv.focus();
+    
+    // Afficher les boutons de sauvegarde et annulation
+    const parentCard = titreDiv.closest('.card-body');
+    let actionButtons = parentCard.querySelector('.message-edit-actions');
+    
+    if (!actionButtons) {
+        actionButtons = document.createElement('div');
+        actionButtons.className = 'message-edit-actions mt-3';
+        actionButtons.innerHTML = `
+            <button class="btn btn-success btn-sm" onclick="sauvegarderMessage(${messageId}, '${originalTitre.replace(/'/g, "\\'")}', '${originalContenu.replace(/'/g, "\\'")}')">
+                <i class="bi bi-check-lg"></i> Sauvegarder
+            </button>
+            <button class="btn btn-secondary btn-sm ms-2" onclick="annulerEditionMessage(${messageId}, '${originalTitre.replace(/'/g, "\\'")}', '${originalContenu.replace(/'/g, "\\'")}')">
+                <i class="bi bi-x-lg"></i> Annuler
+            </button>
+        `;
+        parentCard.appendChild(actionButtons);
+    }
+}
+
+/**
+ * Annuler l'édition d'un message
+ */
+function annulerEditionMessage(messageId, originalTitre, originalContenu) {
+    const titreDiv = document.getElementById('message-titre-' + messageId);
+    const contenuDiv = document.getElementById('message-contenu-' + messageId);
+    
+    if (titreDiv) {
+        titreDiv.textContent = originalTitre;
+        titreDiv.setAttribute('contenteditable', 'false');
+        titreDiv.style.border = '';
+        titreDiv.style.padding = '';
+        titreDiv.style.borderRadius = '';
+        titreDiv.style.backgroundColor = '';
+    }
+    
+    if (contenuDiv) {
+        contenuDiv.textContent = originalContenu;
+        contenuDiv.setAttribute('contenteditable', 'false');
+        contenuDiv.style.border = '';
+        contenuDiv.style.padding = '';
+        contenuDiv.style.borderRadius = '';
+        contenuDiv.style.backgroundColor = '';
+    }
+    
+    // Supprimer les boutons d'action
+    const actionButtons = titreDiv.closest('.card-body').querySelector('.message-edit-actions');
+    if (actionButtons) actionButtons.remove();
+}
+
+/**
+ * Sauvegarder les modifications d'un message
+ */
+function sauvegarderMessage(messageId, originalTitre, originalContenu) {
+    const titreDiv = document.getElementById('message-titre-' + messageId);
+    const contenuDiv = document.getElementById('message-contenu-' + messageId);
+    
+    const newTitre = titreDiv.textContent.trim();
+    const newContenu = contenuDiv.textContent.trim();
+    
+    if (!newTitre || !newContenu) {
+        alert('Le titre et le contenu ne peuvent pas être vides');
+        return;
+    }
+    
+    fetch('api.php?action=modifierMessage', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'message_id=' + messageId + '&titre=' + encodeURIComponent(newTitre) + '&contenu=' + encodeURIComponent(newContenu)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Désactiver l'édition
+            titreDiv.setAttribute('contenteditable', 'false');
+            contenuDiv.setAttribute('contenteditable', 'false');
+            
+            titreDiv.style.border = '';
+            titreDiv.style.padding = '';
+            titreDiv.style.borderRadius = '';
+            titreDiv.style.backgroundColor = '';
+            
+            contenuDiv.style.border = '';
+            contenuDiv.style.padding = '';
+            contenuDiv.style.borderRadius = '';
+            contenuDiv.style.backgroundColor = '';
+            
+            // Supprimer les boutons d'action
+            const actionButtons = titreDiv.closest('.card-body').querySelector('.message-edit-actions');
+            if (actionButtons) actionButtons.remove();
+            
+            showNotificationBanner('Message modifié avec succès', 'success');
+        } else {
+            alert(data.message || 'Erreur lors de la modification');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la sauvegarde');
+    });
+}
+
 
 /**
  * Recherche en temps réel

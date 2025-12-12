@@ -266,6 +266,40 @@ class ApiController {
             echo json_encode(['success' => false, 'message' => 'Non autorisé']);
         }
     }
+
+    /**
+     * Modifier un message (édition inline)
+     */
+    public function modifierMessage(){
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Non connecté']);
+            return;
+        }
+
+        $message_id = $_POST['message_id'] ?? null;
+        $titre = trim($_POST['titre'] ?? '');
+        $contenu = trim($_POST['contenu'] ?? '');
+        
+        if (!$message_id || empty($titre) || empty($contenu)) {
+            echo json_encode(['success' => false, 'message' => 'Données invalides']);
+            return;
+        }
+
+        $post = new Post();
+        $messageData = $post->trouverParId($message_id);
+        
+        // Vérifier que l'utilisateur est l'auteur
+        if ($messageData && $messageData['utilisateur_id'] == $_SESSION['user_id']) {
+            $post->modifier($message_id, $titre, $contenu);
+            echo json_encode([
+                'success' => true,
+                'titre' => htmlspecialchars($titre),
+                'contenu' => htmlspecialchars($contenu)
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Non autorisé']);
+        }
+    }
 }
 
 // Routeur simple pour l'API
@@ -294,6 +328,9 @@ try {
             break;
         case 'modifierCommentaire':
             $controller->modifierCommentaire();
+            break;
+        case 'modifierMessage':
+            $controller->modifierMessage();
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Action inconnue']);

@@ -32,7 +32,23 @@
                         le <?php echo date('d/m/Y à H:i', strtotime($message['date_publication'])); ?>
                     </h6>
                     <hr>
-                    <p class="card-text" style="white-space: pre-wrap;"><?php echo htmlspecialchars($message['contenu']); ?></p>
+                    <div id="message-titre-<?php echo $message['message_id']; ?>" 
+                         class="message-titre-content h5 mb-3" 
+                         data-message-id="<?php echo $message['message_id']; ?>">
+                        <?php echo htmlspecialchars($message['titre']); ?>
+                    </div>
+                    <div id="message-contenu-<?php echo $message['message_id']; ?>" 
+                         class="message-content" 
+                         data-message-id="<?php echo $message['message_id']; ?>" 
+                         style="white-space: pre-wrap;">
+                        <?php echo htmlspecialchars($message['contenu']); ?>
+                    </div>
+                    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $message['utilisateur_id']): ?>
+                    <button class="btn btn-sm btn-link text-muted mt-2" 
+                            onclick="activerEditionMessage(<?php echo $message['message_id']; ?>)">
+                        <i class="bi bi-pencil"></i> Modifier en ligne
+                    </button>
+                    <?php endif; ?>
                     <div class="mt-3">
                         <button class="btn btn-sm btn-outline-danger reaction-btn <?php echo $message['user_reacted'] ? 'text-danger' : ''; ?>" 
                                 onclick="toggleReaction(<?php echo $message['message_id']; ?>, this)">
@@ -77,14 +93,18 @@
                                                 <h6 class="mb-1">
                                                     <i class="bi bi-person-fill"></i> <?php echo htmlspecialchars($commentaire['auteur_nom']); ?>
                                                 </h6>
-                                                <p class="mt-2 mb-2 comment-content" data-comment-id="<?php echo $commentaire['commentaire_id']; ?>">
+                                                <div id="comment-content-<?php echo $commentaire['commentaire_id']; ?>" 
+                                                     class="mt-2 mb-2 comment-content" 
+                                                     data-comment-id="<?php echo $commentaire['commentaire_id']; ?>" 
+                                                     data-original-content="<?php echo htmlspecialchars($commentaire['contenu']); ?>">
                                                     <?php echo nl2br(htmlspecialchars($commentaire['contenu'])); ?>
-                                                </p>
+                                                </div>
                                                 <small class="text-muted">
                                                     <i class="bi bi-clock"></i> <?php echo date('d/m/Y à H:i', strtotime($commentaire['date_commentaire'])); ?>
                                                 </small>
                                                 <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $commentaire['utilisateur_id']): ?>
-                                                    <button class="btn btn-sm btn-link text-muted" 
+                                                    <button class="btn btn-sm btn-link text-muted edit-comment-btn" 
+                                                            data-comment-id="<?php echo $commentaire['commentaire_id']; ?>" 
                                                             onclick="activerEditionInline(<?php echo $commentaire['commentaire_id']; ?>)">
                                                         <i class="bi bi-pencil"></i> Modifier
                                                     </button>

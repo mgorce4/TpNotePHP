@@ -1,0 +1,42 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php82
+    depends_on:
+      - db
+    volumes:
+      - ./TpNote:/var/www/html/
+      - ./vendor:/var/www/vendor/
+    ports:
+      - 80:80
+
+  db:
+    container_name: mysql8
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: MySecurePwd
+      MYSQL_DATABASE: TpNote
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: monpassword
+    ports:
+      - 3306:3306
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmya:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: db
+      PMA_USER: myuser
+      PMA_PASSWORD: monpassword
+      UPLOAD_LIMIT: 20M
+    ports:
+      - 8899:80
+
+volumes:
+  db_data:
+    driver: local
